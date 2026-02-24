@@ -7,6 +7,7 @@ from agent.prompts.sql_generator import SQL_GENERATOR_SYSTEM_PROMPT, SQL_GENERAT
 from agent.llm import get_llm
 from knowledge.semantic_layer import get_glossary_text
 from knowledge.few_shot import get_similar_examples
+from agent.prompt_utils import safe_format_prompt
 
 
 def _extract_json_from_text(text: str) -> dict | None:
@@ -44,12 +45,12 @@ def sql_generator_node(state: AgentState) -> dict:
     glossary = get_glossary_text(dataset_id)
     few_shot = get_similar_examples(user_message, dataset_id)
 
-    system_prompt = SQL_GENERATOR_SYSTEM_PROMPT.format(
+    system_prompt = safe_format_prompt(SQL_GENERATOR_SYSTEM_PROMPT, 
         glossary=glossary if glossary else "暂无业务术语映射",
         few_shot_examples=few_shot if few_shot else "暂无历史示例",
     )
 
-    user_prompt = SQL_GENERATOR_USER_PROMPT.format(
+    user_prompt = safe_format_prompt(SQL_GENERATOR_USER_PROMPT, 
         user_message=user_message,
         dialect="sqlite",
         schema_context=schema_context,

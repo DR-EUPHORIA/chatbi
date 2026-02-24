@@ -5,6 +5,7 @@ import re
 from agent.state import AgentState, NodeStatus
 from agent.prompts.narrative_generator import NARRATIVE_GENERATOR_SYSTEM_PROMPT, NARRATIVE_GENERATOR_USER_PROMPT
 from agent.llm import get_llm
+from agent.prompt_utils import safe_format_prompt
 
 
 def narrative_generator_node(state: AgentState) -> dict:
@@ -25,7 +26,7 @@ def narrative_generator_node(state: AgentState) -> dict:
     }
 
     llm = get_llm()
-    prompt = NARRATIVE_GENERATOR_USER_PROMPT.format(
+    prompt = safe_format_prompt(NARRATIVE_GENERATOR_USER_PROMPT, 
         user_message=user_message,
         analysis_result=json.dumps(analysis_result, ensure_ascii=False),
         insights=json.dumps(key_insights, ensure_ascii=False),

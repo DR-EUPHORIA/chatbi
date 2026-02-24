@@ -5,6 +5,7 @@ import re
 from agent.state import AgentState, NodeStatus
 from agent.prompts.analyzer import ANALYZER_SYSTEM_PROMPT, ANALYZER_USER_PROMPT
 from agent.llm import get_llm
+from agent.prompt_utils import safe_format_prompt
 
 
 def analyzer_node(state: AgentState) -> dict:
@@ -28,7 +29,7 @@ def analyzer_node(state: AgentState) -> dict:
     columns_str = json.dumps(sql_result_columns, ensure_ascii=False)
 
     llm = get_llm()
-    prompt = ANALYZER_USER_PROMPT.format(
+    prompt = safe_format_prompt(ANALYZER_USER_PROMPT, 
         user_message=user_message,
         generated_sql=generated_sql,
         columns=columns_str,
@@ -40,6 +41,7 @@ def analyzer_node(state: AgentState) -> dict:
         {"role": "user", "content": prompt},
     ])
 
+    result: dict | None = None
     try:
         result = json.loads(response.content)
     except json.JSONDecodeError:
@@ -50,15 +52,25 @@ def analyzer_node(state: AgentState) -> dict:
                 result = json.loads(json_match.group(1))
             except json.JSONDecodeError:
                 result = None
-        if not isinstance(result, dict):
-            result = {
-                "summary": response.content[:200],
-                "key_metrics": {},
-                "trends": [],
-                "anomalies": [],
-                "insights": [response.content[:300]],
-                "recommendations": [],
-            }
+
+        # 尝试直接提取首个 JSON 对象（非 markdown 包裹）
+        if result is None:
+            object_match = re.search(r'(\{[\s\S]*\})', response.content)
+            if object_match:
+                try:
+                    result = json.loads(object_match.group(1))
+                except json.JSONDecodeError:
+                    result = None
+
+    if not isinstance(result, dict):
+        result = {
+            "summary": response.content[:200],
+            "key_metrics": {},
+            "trends": [],
+            "anomalies": [],
+            "insights": [response.content[:300]],
+            "recommendations": [],
+        }
 
     step["status"] = NodeStatus.SUCCESS.value
     step["detail"] = f"分析完成：{result.get('summary', '')[:80]}"

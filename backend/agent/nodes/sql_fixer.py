@@ -4,6 +4,7 @@ import json
 from agent.state import AgentState, NodeStatus
 from agent.prompts.sql_fixer import SQL_FIXER_SYSTEM_PROMPT, SQL_FIXER_USER_PROMPT
 from agent.llm import get_llm
+from agent.prompt_utils import safe_format_prompt
 
 
 def sql_fixer_node(state: AgentState) -> dict:
@@ -13,6 +14,7 @@ def sql_fixer_node(state: AgentState) -> dict:
     sql_error = state.get("sql_error", "")
     schema_context = state.get("schema_context", "")
     retry_count = state.get("sql_retry_count", 0)
+    next_retry_count = retry_count + 1
 
     step = {
         "node_name": "sql_fixer",
@@ -23,7 +25,7 @@ def sql_fixer_node(state: AgentState) -> dict:
     }
 
     llm = get_llm()
-    prompt = SQL_FIXER_USER_PROMPT.format(
+    prompt = safe_format_prompt(SQL_FIXER_USER_PROMPT, 
         original_sql=generated_sql,
         error=sql_error,
         schema_context=schema_context,
@@ -59,4 +61,8 @@ def sql_fixer_node(state: AgentState) -> dict:
             step["status"] = NodeStatus.FAILED.value
             step["detail"] = "SQL 修正失败"
 
-    return {"generated_sql": fixed_sql, "steps": [step]}
+    return {
+        "generated_sql": fixed_sql,
+        "sql_retry_count": next_retry_count,
+        "steps": [step],
+    }

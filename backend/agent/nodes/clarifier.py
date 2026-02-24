@@ -5,6 +5,7 @@ from agent.state import AgentState, NodeStatus
 from agent.prompts.clarifier import CLARIFIER_SYSTEM_PROMPT, CLARIFIER_USER_PROMPT
 from agent.llm import get_llm
 from knowledge.semantic_layer import get_glossary_text
+from agent.prompt_utils import safe_format_prompt
 
 
 def clarifier_node(state: AgentState) -> dict:
@@ -25,7 +26,7 @@ def clarifier_node(state: AgentState) -> dict:
     glossary = get_glossary_text(dataset_id)
 
     llm = get_llm()
-    prompt = CLARIFIER_USER_PROMPT.format(
+    prompt = safe_format_prompt(CLARIFIER_USER_PROMPT, 
         user_message=user_message,
         schema_context=schema_context,
         glossary=glossary if glossary else "暂无业务术语表",

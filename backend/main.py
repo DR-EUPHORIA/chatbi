@@ -48,9 +48,17 @@ async def health_check():
 
 
 if __name__ == "__main__":
+    backend_dir = Path(__file__).resolve().parent
+    project_root = backend_dir.parent
+
     uvicorn.run(
         "main:app",
         host=settings.host,
         port=settings.port,
         reload=settings.debug,
+        reload_dirs=[str(backend_dir)] if settings.debug else None,
+        reload_excludes=[
+            str(project_root / "frontend" / "node_modules"),
+            str(project_root / ".venv"),
+        ] if settings.debug else None,
     )

@@ -5,6 +5,7 @@ import re
 from agent.state import AgentState, NodeStatus
 from agent.prompts.chart_recommender import CHART_RECOMMENDER_SYSTEM_PROMPT, CHART_RECOMMENDER_USER_PROMPT
 from agent.llm import get_llm
+from agent.prompt_utils import safe_format_prompt
 
 
 def chart_recommender_node(state: AgentState) -> dict:
@@ -27,7 +28,7 @@ def chart_recommender_node(state: AgentState) -> dict:
     data_preview = sql_result[:20]
     
     llm = get_llm()
-    prompt = CHART_RECOMMENDER_USER_PROMPT.format(
+    prompt = safe_format_prompt(CHART_RECOMMENDER_USER_PROMPT, 
         user_message=user_message,
         columns=json.dumps(sql_result_columns, ensure_ascii=False),
         data_sample=json.dumps(data_preview, ensure_ascii=False, indent=2),

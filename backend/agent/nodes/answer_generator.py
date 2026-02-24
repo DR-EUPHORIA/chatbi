@@ -5,6 +5,7 @@ import re
 from agent.state import AgentState, NodeStatus
 from agent.prompts.answer_generator import ANSWER_GENERATOR_SYSTEM_PROMPT, ANSWER_GENERATOR_USER_PROMPT
 from agent.llm import get_llm
+from agent.prompt_utils import safe_format_prompt
 
 
 def answer_generator_node(state: AgentState) -> dict:
@@ -26,7 +27,7 @@ def answer_generator_node(state: AgentState) -> dict:
     }
 
     llm = get_llm()
-    prompt = ANSWER_GENERATOR_USER_PROMPT.format(
+    prompt = safe_format_prompt(ANSWER_GENERATOR_USER_PROMPT, 
         user_message=user_message,
         executive_summary=executive_summary,
         key_insights=json.dumps(key_insights, ensure_ascii=False),

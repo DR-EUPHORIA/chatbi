@@ -5,6 +5,7 @@ import re
 from agent.state import AgentState, NodeStatus
 from agent.prompts.entity_extractor import ENTITY_EXTRACTOR_SYSTEM_PROMPT, ENTITY_EXTRACTOR_USER_PROMPT
 from agent.llm import get_llm
+from agent.prompt_utils import safe_format_prompt
 
 
 def entity_extractor_node(state: AgentState) -> dict:
@@ -12,6 +13,7 @@ def entity_extractor_node(state: AgentState) -> dict:
 
     user_message = state.get("user_message", "")
     schema_info = state.get("matched_tables", [])
+    glossary = state.get("glossary", {})
 
     step = {
         "node_name": "entity_extractor",
@@ -22,9 +24,15 @@ def entity_extractor_node(state: AgentState) -> dict:
     }
 
     llm = get_llm()
-    prompt = ENTITY_EXTRACTOR_USER_PROMPT.format(
+    dataset_info = json.dumps(schema_info, ensure_ascii=False) if schema_info else "[]"
+    glossary_info = json.dumps(glossary, ensure_ascii=False) if glossary else "暂无业务术语表"
+
+    # 同时提供 dataset_info/schema_info，兼容不同版本的 Prompt 占位符命名
+    prompt = safe_format_prompt(ENTITY_EXTRACTOR_USER_PROMPT, 
         user_message=user_message,
-        schema_info=json.dumps(schema_info, ensure_ascii=False),
+        dataset_info=dataset_info,
+        schema_info=dataset_info,
+        glossary=glossary_info,
     )
 
     response = llm.invoke([
@@ -45,28 +53,61 @@ def entity_extractor_node(state: AgentState) -> dict:
             result = {}
 
     if not isinstance(result, dict):
-        result = {
-            "time_entities": [],
-            "dimension_entities": [],
-            "metric_entities": [],
-            "filter_entities": [],
-            "aggregation_type": None,
-        }
+        result = {}
+
+    # 兼容两种输出结构：
+    # 1) *_entities（当前节点期望）
+    # 2) metrics/dimensions/time/filters（Prompt 示例）
+    time_entities = result.get("time_entities")
+    if time_entities is None:
+        time_value = result.get("time")
+        if isinstance(time_value, list):
+            time_entities = time_value
+        elif isinstance(time_value, dict):
+            time_entities = [time_value]
+        else:
+            time_entities = []
+
+    dimension_entities = result.get("dimension_entities")
+    if dimension_entities is None:
+        dimension_entities = result.get("dimensions", [])
+
+    metric_entities = result.get("metric_entities")
+    if metric_entities is None:
+        metric_entities = result.get("metrics", [])
+
+    filter_entities = result.get("filter_entities")
+    if filter_entities is None:
+        filter_entities = result.get("filters", [])
+
+    if not isinstance(time_entities, list):
+        time_entities = []
+    if not isinstance(dimension_entities, list):
+        dimension_entities = []
+    if not isinstance(metric_entities, list):
+        metric_entities = []
+    if not isinstance(filter_entities, list):
+        filter_entities = []
+
+    result["time_entities"] = time_entities
+    result["dimension_entities"] = dimension_entities
+    result["metric_entities"] = metric_entities
+    result["filter_entities"] = filter_entities
 
     step["status"] = NodeStatus.SUCCESS.value
-    step["detail"] = f"提取到 {len(result.get('metric_entities', []))} 个指标实体"
+    step["detail"] = f"提取到 {len(metric_entities)} 个指标实体"
     step["data"] = {
-        "time_count": len(result.get("time_entities", [])),
-        "dimension_count": len(result.get("dimension_entities", [])),
-        "metric_count": len(result.get("metric_entities", [])),
-        "filter_count": len(result.get("filter_entities", [])),
+        "time_count": len(time_entities),
+        "dimension_count": len(dimension_entities),
+        "metric_count": len(metric_entities),
+        "filter_count": len(filter_entities),
     }
 
     return {
         "extracted_entities": result,
-        "time_entities": result.get("time_entities", []),
-        "dimension_entities": result.get("dimension_entities", []),
-        "metric_entities": result.get("metric_entities", []),
-        "filter_entities": result.get("filter_entities", []),
+        "time_entities": time_entities,
+        "dimension_entities": dimension_entities,
+        "metric_entities": metric_entities,
+        "filter_entities": filter_entities,
         "steps": [step],
     }

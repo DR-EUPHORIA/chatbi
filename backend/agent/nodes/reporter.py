@@ -14,6 +14,7 @@ from tools.file_writer import (
     generate_ppt_export,
 )
 from config import settings
+from agent.prompt_utils import safe_format_prompt
 
 
 def reporter_node(state: AgentState) -> dict:
@@ -40,7 +41,7 @@ def reporter_node(state: AgentState) -> dict:
     chart_str = json.dumps(chart_config, ensure_ascii=False, indent=2)
 
     llm = get_llm()
-    prompt = REPORTER_USER_PROMPT.format(
+    prompt = safe_format_prompt(REPORTER_USER_PROMPT, 
         user_message=user_message,
         intent=intent,
         analysis_result=analysis_str,

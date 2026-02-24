@@ -5,12 +5,16 @@ import re
 from agent.state import AgentState, NodeStatus
 from agent.prompts.query_rewriter import QUERY_REWRITER_SYSTEM_PROMPT, QUERY_REWRITER_USER_PROMPT
 from agent.llm import get_llm
+from data.datasets.manager import dataset_manager
+from knowledge.semantic_layer import get_glossary_text
+from agent.prompt_utils import safe_format_prompt
 
 
 def query_rewriter_node(state: AgentState) -> dict:
     """将用户的自然语言问题改写为更结构化、更明确的查询表达"""
 
     user_message = state.get("user_message", "")
+    dataset_id = state.get("dataset_id")
     extracted_entities = state.get("extracted_entities", {})
     conversation_history = state.get("conversation_history", [])
 
@@ -22,9 +26,19 @@ def query_rewriter_node(state: AgentState) -> dict:
         "data": {},
     }
 
+    dataset_info = "暂无数据集"
+    if dataset_id:
+        schema = dataset_manager.get_schema(dataset_id)
+        if schema:
+            dataset_info = json.dumps(schema, ensure_ascii=False, indent=2)
+
+    glossary = get_glossary_text(dataset_id)
+
     llm = get_llm()
-    prompt = QUERY_REWRITER_USER_PROMPT.format(
+    prompt = safe_format_prompt(QUERY_REWRITER_USER_PROMPT, 
         user_message=user_message,
+        dataset_info=dataset_info,
+        glossary=glossary if glossary else "暂无业务术语表",
         extracted_entities=json.dumps(extracted_entities, ensure_ascii=False),
         conversation_history=json.dumps(conversation_history[-5:], ensure_ascii=False) if conversation_history else "[]",
     )

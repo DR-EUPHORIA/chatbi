@@ -4,6 +4,7 @@ import json
 from agent.state import AgentState, IntentType, NodeStatus
 from agent.prompts.router import ROUTER_SYSTEM_PROMPT, ROUTER_USER_PROMPT
 from agent.llm import get_llm
+from agent.prompt_utils import safe_format_prompt
 
 VALID_INTENTS = {t.value for t in IntentType}
 
@@ -22,7 +23,7 @@ def router_node(state: AgentState) -> dict:
     }
 
     llm = get_llm()
-    prompt = ROUTER_USER_PROMPT.format(
+    prompt = safe_format_prompt(ROUTER_USER_PROMPT, 
         user_message=user_message,
         enhanced_query=user_message,
     )

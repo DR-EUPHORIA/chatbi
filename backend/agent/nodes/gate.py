@@ -5,6 +5,7 @@ from agent.state import AgentState, NodeStatus
 from agent.prompts.gate import GATE_SYSTEM_PROMPT, GATE_USER_PROMPT
 from agent.llm import get_llm
 from data.datasets.manager import dataset_manager
+from agent.prompt_utils import safe_format_prompt
 
 
 def gate_node(state: AgentState) -> dict:
@@ -29,7 +30,7 @@ def gate_node(state: AgentState) -> dict:
             dataset_info = json.dumps(schema, ensure_ascii=False, indent=2)
 
     llm = get_llm()
-    prompt = GATE_USER_PROMPT.format(
+    prompt = safe_format_prompt(GATE_USER_PROMPT, 
         user_message=user_message,
         dataset_info=dataset_info,
     )

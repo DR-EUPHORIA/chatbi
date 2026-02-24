@@ -5,6 +5,7 @@ import re
 from agent.state import AgentState, NodeStatus
 from agent.prompts.correlation_analyzer import CORRELATION_ANALYZER_SYSTEM_PROMPT, CORRELATION_ANALYZER_USER_PROMPT
 from agent.llm import get_llm
+from agent.prompt_utils import safe_format_prompt
 
 
 def correlation_analyzer_node(state: AgentState) -> dict:
@@ -26,7 +27,7 @@ def correlation_analyzer_node(state: AgentState) -> dict:
     data_preview = sql_result[:100]
     
     llm = get_llm()
-    prompt = CORRELATION_ANALYZER_USER_PROMPT.format(
+    prompt = safe_format_prompt(CORRELATION_ANALYZER_USER_PROMPT, 
         user_message=user_message,
         columns=json.dumps(sql_result_columns, ensure_ascii=False),
         data=json.dumps(data_preview, ensure_ascii=False, indent=2),

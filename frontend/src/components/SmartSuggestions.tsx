@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react'
 import { Typography, Tag, Tooltip, Spin } from 'antd'
 import {
   BulbOutlined,
-  TrendingUpOutlined,
+  LineChartOutlined,
   PieChartOutlined,
   BarChartOutlined,
   TableOutlined,
@@ -37,7 +37,7 @@ interface Suggestion {
 const BASE_SUGGESTIONS: Record<string, Suggestion[]> = {
   demo_ecommerce: [
     { id: '1', question: '本月销售额是多少？环比增长了多少？', category: 'summary', icon: <BarChartOutlined /> },
-    { id: '2', question: '最近30天的销售趋势如何？', category: 'trend', icon: <TrendingUpOutlined /> },
+    { id: '2', question: '最近30天的销售趋势如何？', category: 'trend', icon: <LineChartOutlined /> },
     { id: '3', question: '各品类销售额占比是多少？', category: 'distribution', icon: <PieChartOutlined /> },
     { id: '4', question: '哪些商品销量异常下降？', category: 'anomaly', icon: <AlertOutlined /> },
     { id: '5', question: '各地区销售额排名Top10', category: 'comparison', icon: <TableOutlined /> },
@@ -45,7 +45,7 @@ const BASE_SUGGESTIONS: Record<string, Suggestion[]> = {
   ],
   demo_finance: [
     { id: '1', question: '本季度营收和利润情况如何？', category: 'summary', icon: <BarChartOutlined /> },
-    { id: '2', question: '近12个月的现金流趋势', category: 'trend', icon: <TrendingUpOutlined /> },
+    { id: '2', question: '近12个月的现金流趋势', category: 'trend', icon: <LineChartOutlined /> },
     { id: '3', question: '各业务线收入占比分析', category: 'distribution', icon: <PieChartOutlined /> },
     { id: '4', question: '哪些成本项目增长异常？', category: 'anomaly', icon: <AlertOutlined /> },
     { id: '5', question: '应收账款账龄分布', category: 'comparison', icon: <TableOutlined /> },
@@ -53,7 +53,7 @@ const BASE_SUGGESTIONS: Record<string, Suggestion[]> = {
   ],
   demo_marketing: [
     { id: '1', question: '本月各渠道的转化率是多少？', category: 'summary', icon: <BarChartOutlined /> },
-    { id: '2', question: '近30天的用户增长趋势', category: 'trend', icon: <TrendingUpOutlined /> },
+    { id: '2', question: '近30天的用户增长趋势', category: 'trend', icon: <LineChartOutlined /> },
     { id: '3', question: '各营销渠道的ROI对比', category: 'distribution', icon: <PieChartOutlined /> },
     { id: '4', question: '哪些广告计划效果异常差？', category: 'anomaly', icon: <AlertOutlined /> },
     { id: '5', question: '用户来源渠道Top5', category: 'comparison', icon: <TableOutlined /> },
@@ -71,7 +71,7 @@ function generateFollowUpSuggestions(lastQuery: string, lastResult?: Record<stri
       id: 'f1',
       question: '上个月的情况呢？',
       category: 'trend',
-      icon: <TrendingUpOutlined />,
+      icon: <LineChartOutlined />,
       isFollowUp: true,
     })
     followUps.push({
@@ -95,7 +95,7 @@ function generateFollowUpSuggestions(lastQuery: string, lastResult?: Record<stri
       id: 'f4',
       question: '预测下个月会怎样？',
       category: 'trend',
-      icon: <TrendingUpOutlined />,
+      icon: <LineChartOutlined />,
       isFollowUp: true,
     })
   }

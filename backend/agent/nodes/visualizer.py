@@ -5,6 +5,7 @@ import re
 from agent.state import AgentState, IntentType, NodeStatus
 from agent.prompts.visualizer import VISUALIZER_SYSTEM_PROMPT, VISUALIZER_USER_PROMPT
 from agent.llm import get_llm
+from agent.prompt_utils import safe_format_prompt
 
 
 def visualizer_node(state: AgentState) -> dict:
@@ -30,7 +31,7 @@ def visualizer_node(state: AgentState) -> dict:
     analysis_str = json.dumps(analysis_result, ensure_ascii=False, indent=2)
 
     llm = get_llm()
-    prompt = VISUALIZER_USER_PROMPT.format(
+    prompt = safe_format_prompt(VISUALIZER_USER_PROMPT, 
         user_message=user_message,
         analysis_result=analysis_str,
         columns=columns_str,

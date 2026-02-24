@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     app_name: str = "ChatBI Mini"
     app_version: str = "0.1.0"
     debug: bool = True
+    sql_echo: bool = False
 
     # ── LLM ──
     llm_provider: str = "openai"  # openai / azure / dashscope

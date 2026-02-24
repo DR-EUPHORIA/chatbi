@@ -5,6 +5,7 @@ import re
 from agent.state import AgentState, NodeStatus
 from agent.prompts.data_cleaner import DATA_CLEANER_SYSTEM_PROMPT, DATA_CLEANER_USER_PROMPT
 from agent.llm import get_llm
+from agent.prompt_utils import safe_format_prompt
 
 
 def data_cleaner_node(state: AgentState) -> dict:
@@ -24,7 +25,7 @@ def data_cleaner_node(state: AgentState) -> dict:
     data_preview = sql_result[:50]
     
     llm = get_llm()
-    prompt = DATA_CLEANER_USER_PROMPT.format(
+    prompt = safe_format_prompt(DATA_CLEANER_USER_PROMPT, 
         columns=json.dumps(sql_result_columns, ensure_ascii=False),
         data=json.dumps(data_preview, ensure_ascii=False, indent=2),
         total_rows=len(sql_result),

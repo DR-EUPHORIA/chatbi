@@ -149,7 +149,11 @@ def after_column_selector(state: AgentState) -> str:
 def after_sql_validator(state: AgentState) -> str:
     """SQL 验证后的路由"""
     is_valid = state.get("sql_is_valid", True)
+    retry_count = state.get("sql_retry_count", 0)
     if not is_valid:
+        # 避免 sql_validator <-> sql_fixer 无限循环
+        if retry_count >= 3:
+            return END
         return "sql_fixer"
     return "sql_optimizer"
 

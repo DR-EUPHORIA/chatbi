@@ -5,6 +5,7 @@ import re
 from agent.state import AgentState, NodeStatus
 from agent.prompts.file_parser import FILE_PARSER_SYSTEM_PROMPT, FILE_PARSER_USER_PROMPT
 from agent.llm import get_llm
+from agent.prompt_utils import safe_format_prompt
 
 
 def file_parser_node(state: AgentState) -> dict:
@@ -26,7 +27,7 @@ def file_parser_node(state: AgentState) -> dict:
     content_preview = file_content[:5000] if file_content else ""
     
     llm = get_llm()
-    prompt = FILE_PARSER_USER_PROMPT.format(
+    prompt = safe_format_prompt(FILE_PARSER_USER_PROMPT, 
         user_message=user_message,
         file_path=file_path,
         file_type=file_type,

@@ -5,13 +5,17 @@ import re
 from agent.state import AgentState, NodeStatus
 from agent.prompts.column_selector import COLUMN_SELECTOR_SYSTEM_PROMPT, COLUMN_SELECTOR_USER_PROMPT
 from agent.llm import get_llm
+from knowledge.semantic_layer import get_glossary_text
+from agent.prompt_utils import safe_format_prompt
 
 
 def column_selector_node(state: AgentState) -> dict:
     """根据用户问题和提取的实体，选择最相关的数据列"""
 
     user_message = state.get("user_message", "")
+    dataset_id = state.get("dataset_id")
     matched_tables = state.get("matched_tables", [])
+    schema_context = state.get("schema_context", "")
     extracted_entities = state.get("extracted_entities", {})
 
     step = {
@@ -22,10 +26,18 @@ def column_selector_node(state: AgentState) -> dict:
         "data": {},
     }
 
+    schema_text = schema_context if schema_context else json.dumps(matched_tables, ensure_ascii=False)
+    if not schema_text:
+        schema_text = "暂无表结构信息"
+    glossary = get_glossary_text(dataset_id)
+
     llm = get_llm()
-    prompt = COLUMN_SELECTOR_USER_PROMPT.format(
+    prompt = safe_format_prompt(COLUMN_SELECTOR_USER_PROMPT, 
         user_message=user_message,
-        matched_tables=json.dumps(matched_tables, ensure_ascii=False),
+        schema_context=schema_text,
+        glossary=glossary if glossary else "暂无业务术语映射",
+        # 兼容历史 Prompt 占位符命名
+        matched_tables=schema_text,
         extracted_entities=json.dumps(extracted_entities, ensure_ascii=False),
     )
 

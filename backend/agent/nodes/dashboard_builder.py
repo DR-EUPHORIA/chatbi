@@ -5,6 +5,7 @@ import re
 from agent.state import AgentState, NodeStatus
 from agent.prompts.dashboard_builder import DASHBOARD_BUILDER_SYSTEM_PROMPT, DASHBOARD_BUILDER_USER_PROMPT
 from agent.llm import get_llm
+from agent.prompt_utils import safe_format_prompt
 
 
 def dashboard_builder_node(state: AgentState) -> dict:
@@ -28,7 +29,7 @@ def dashboard_builder_node(state: AgentState) -> dict:
     data_preview = sql_result[:30]
     
     llm = get_llm()
-    prompt = DASHBOARD_BUILDER_USER_PROMPT.format(
+    prompt = safe_format_prompt(DASHBOARD_BUILDER_USER_PROMPT, 
         user_message=user_message,
         columns=json.dumps(sql_result_columns, ensure_ascii=False),
         data_sample=json.dumps(data_preview, ensure_ascii=False, indent=2),

@@ -5,6 +5,7 @@ import re
 from agent.state import AgentState, NodeStatus
 from agent.prompts.result_validator import RESULT_VALIDATOR_SYSTEM_PROMPT, RESULT_VALIDATOR_USER_PROMPT
 from agent.llm import get_llm
+from agent.prompt_utils import safe_format_prompt
 
 
 def result_validator_node(state: AgentState) -> dict:
@@ -26,7 +27,7 @@ def result_validator_node(state: AgentState) -> dict:
     data_preview = sql_result[:20]
     
     llm = get_llm()
-    prompt = RESULT_VALIDATOR_USER_PROMPT.format(
+    prompt = safe_format_prompt(RESULT_VALIDATOR_USER_PROMPT, 
         user_message=user_message,
         generated_sql=generated_sql,
         columns=json.dumps(sql_result_columns, ensure_ascii=False),

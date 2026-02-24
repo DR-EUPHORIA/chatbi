@@ -5,6 +5,7 @@ import re
 from agent.state import AgentState, NodeStatus
 from agent.prompts.recommendation_generator import RECOMMENDATION_GENERATOR_SYSTEM_PROMPT, RECOMMENDATION_GENERATOR_USER_PROMPT
 from agent.llm import get_llm
+from agent.prompt_utils import safe_format_prompt
 
 
 def recommendation_generator_node(state: AgentState) -> dict:
@@ -25,7 +26,7 @@ def recommendation_generator_node(state: AgentState) -> dict:
     }
 
     llm = get_llm()
-    prompt = RECOMMENDATION_GENERATOR_USER_PROMPT.format(
+    prompt = safe_format_prompt(RECOMMENDATION_GENERATOR_USER_PROMPT, 
         user_message=user_message,
         analysis_result=json.dumps(analysis_result, ensure_ascii=False),
         key_insights=json.dumps(key_insights, ensure_ascii=False),
