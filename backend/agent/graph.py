@@ -506,7 +506,11 @@ async def run_agent_stream(
     }
 
     try:
-        async for event in graph.astream(initial_state, stream_mode="updates"):
+        async for event in graph.astream(
+            initial_state,
+            stream_mode="updates",
+            config={"recursion_limit": 80},
+        ):
             # event 格式: {node_name: partial_state_dict}
             for node_name, node_update in event.items():
                 if not isinstance(node_update, dict):

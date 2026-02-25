@@ -312,7 +312,7 @@ export default function DashboardPage() {
         <Row gutter={16} style={{ marginBottom: 20 }}>
           {MOCK_KPI.map((kpi) => (
             <Col span={6} key={kpi.title}>
-              <Card style={cardStyle} bodyStyle={{ padding: '16px 20px' }}>
+              <Card style={cardStyle} styles={{ body: { padding: '16px 20px' } }}>
                 <Text style={{ color: '#8c8c8c', fontSize: 12 }}>{kpi.title}</Text>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginTop: 4 }}>
                   <span style={{ color: 'white', fontSize: 28, fontWeight: 700 }}>
@@ -347,8 +347,7 @@ export default function DashboardPage() {
             <Card
               title={<span style={{ color: '#e6e6e6', fontSize: 14 }}>📈 销售趋势（近30天）</span>}
               style={cardStyle}
-              headStyle={cardHeadStyle}
-              bodyStyle={{ padding: '12px 16px' }}
+              styles={{ header: cardHeadStyle, body: { padding: '12px 16px' } }}
             >
               <ReactECharts option={getSalesTrendOption()} style={{ height: 300 }} />
             </Card>
@@ -359,8 +358,7 @@ export default function DashboardPage() {
             <Card
               title={<span style={{ color: '#e6e6e6', fontSize: 14 }}>🥧 品类占比</span>}
               style={cardStyle}
-              headStyle={cardHeadStyle}
-              bodyStyle={{ padding: '12px 16px' }}
+              styles={{ header: cardHeadStyle, body: { padding: '12px 16px' } }}
             >
               <ReactECharts option={getCategoryPieOption()} style={{ height: 300 }} />
             </Card>
@@ -371,8 +369,7 @@ export default function DashboardPage() {
             <Card
               title={<span style={{ color: '#e6e6e6', fontSize: 14 }}>🗺️ 区域销售排名</span>}
               style={cardStyle}
-              headStyle={cardHeadStyle}
-              bodyStyle={{ padding: '12px 16px' }}
+              styles={{ header: cardHeadStyle, body: { padding: '12px 16px' } }}
             >
               <ReactECharts option={getRegionBarOption()} style={{ height: 260 }} />
             </Card>
@@ -383,8 +380,7 @@ export default function DashboardPage() {
             <Card
               title={<span style={{ color: '#e6e6e6', fontSize: 14 }}>💳 支付方式分布</span>}
               style={cardStyle}
-              headStyle={cardHeadStyle}
-              bodyStyle={{ padding: '12px 16px' }}
+              styles={{ header: cardHeadStyle, body: { padding: '12px 16px' } }}
             >
               <ReactECharts option={getPaymentDonutOption()} style={{ height: 260 }} />
             </Card>
@@ -395,8 +391,7 @@ export default function DashboardPage() {
             <Card
               title={<span style={{ color: '#e6e6e6', fontSize: 14 }}>🕐 订单时段分布热力图</span>}
               style={cardStyle}
-              headStyle={cardHeadStyle}
-              bodyStyle={{ padding: '12px 16px' }}
+              styles={{ header: cardHeadStyle, body: { padding: '12px 16px' } }}
             >
               <ReactECharts option={getHourlyHeatmapOption()} style={{ height: 280 }} />
             </Card>

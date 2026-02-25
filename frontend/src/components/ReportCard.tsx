@@ -50,7 +50,7 @@ export default function ReportCard({
           boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
           border: '1px solid #f0f0f0',
         }}
-        bodyStyle={{ padding: '16px 20px' }}
+        styles={{ body: { padding: '16px 20px' } }}
       >
         {/* 报告标题 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>

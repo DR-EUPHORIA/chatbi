@@ -2,10 +2,31 @@
 
 import json
 import re
+from typing import Any
 from agent.state import AgentState, NodeStatus
 from agent.prompts.analyzer import ANALYZER_SYSTEM_PROMPT, ANALYZER_USER_PROMPT
 from agent.llm import get_llm
 from agent.prompt_utils import safe_format_prompt
+
+
+def _content_to_text(content: Any) -> str:
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts: list[str] = []
+        for item in content:
+            if isinstance(item, str):
+                parts.append(item)
+            elif isinstance(item, dict):
+                text = item.get("text")
+                if isinstance(text, str):
+                    parts.append(text)
+                else:
+                    parts.append(json.dumps(item, ensure_ascii=False))
+            else:
+                parts.append(str(item))
+        return "\n".join(parts)
+    return str(content)
 
 
 def analyzer_node(state: AgentState) -> dict:
@@ -40,13 +61,14 @@ def analyzer_node(state: AgentState) -> dict:
         {"role": "system", "content": ANALYZER_SYSTEM_PROMPT},
         {"role": "user", "content": prompt},
     ])
+    content_text = _content_to_text(response.content)
 
     result: dict | None = None
     try:
-        result = json.loads(response.content)
+        result = json.loads(content_text)
     except json.JSONDecodeError:
         # 尝试从 markdown 代码块中提取 JSON
-        json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', response.content, re.DOTALL)
+        json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', content_text, re.DOTALL)
         if json_match:
             try:
                 result = json.loads(json_match.group(1))
@@ -55,7 +77,7 @@ def analyzer_node(state: AgentState) -> dict:
 
         # 尝试直接提取首个 JSON 对象（非 markdown 包裹）
         if result is None:
-            object_match = re.search(r'(\{[\s\S]*\})', response.content)
+            object_match = re.search(r'(\{[\s\S]*\})', content_text)
             if object_match:
                 try:
                     result = json.loads(object_match.group(1))
@@ -64,11 +86,11 @@ def analyzer_node(state: AgentState) -> dict:
 
     if not isinstance(result, dict):
         result = {
-            "summary": response.content[:200],
+            "summary": content_text[:200],
             "key_metrics": {},
             "trends": [],
             "anomalies": [],
-            "insights": [response.content[:300]],
+            "insights": [content_text[:300]],
             "recommendations": [],
         }
 

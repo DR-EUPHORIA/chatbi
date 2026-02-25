@@ -37,7 +37,7 @@ export default function ClarifyOptions({
         border: '1px solid #ffd666',
         background: '#fffbe6',
       }}
-      bodyStyle={{ padding: '16px 20px' }}
+      styles={{ body: { padding: '16px 20px' } }}
     >
       {/* 标题 */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>

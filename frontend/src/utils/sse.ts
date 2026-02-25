@@ -39,6 +39,8 @@ export async function connectSSE(
 
     const decoder = new TextDecoder()
     let buffer = ''
+    let currentEvent = ''
+    let currentDataLines: string[] = []
 
     while (true) {
       const { done, value } = await reader.read()
@@ -47,28 +49,46 @@ export async function connectSSE(
       buffer += decoder.decode(value, { stream: true })
 
       // 解析 SSE 格式
-      const lines = buffer.split('\n')
+      const lines = buffer.split(/\r?\n/)
       buffer = lines.pop() || ''
 
-      let currentEvent = ''
-      let currentData = ''
-
-      for (const line of lines) {
+      for (const rawLine of lines) {
+        const line = rawLine.trimEnd()
+        if (line.startsWith(':')) {
+          // SSE 注释/心跳行
+          continue
+        }
         if (line.startsWith('event: ')) {
           currentEvent = line.slice(7).trim()
         } else if (line.startsWith('data: ')) {
-          currentData = line.slice(6).trim()
-        } else if (line === '' && currentEvent && currentData) {
+          currentDataLines.push(line.slice(6))
+        } else if (line === '') {
           // 空行表示一个事件结束
-          try {
-            const parsedData = JSON.parse(currentData)
-            onEvent({ type: currentEvent, data: parsedData })
-          } catch {
-            onEvent({ type: currentEvent, data: { raw: currentData } })
+          const eventType = currentEvent || 'message'
+          const currentData = currentDataLines.join('\n')
+          if (currentData) {
+            try {
+              const parsedData = JSON.parse(currentData)
+              onEvent({ type: eventType, data: parsedData })
+            } catch {
+              onEvent({ type: eventType, data: { raw: currentData } })
+            }
           }
           currentEvent = ''
-          currentData = ''
+          currentDataLines = []
         }
+      }
+    }
+
+    // 处理流结束前未以空行结尾的最后一条事件
+    if (currentDataLines.length > 0) {
+      const eventType = currentEvent || 'message'
+      const currentData = currentDataLines.join('\n')
+      try {
+        const parsedData = JSON.parse(currentData)
+        onEvent({ type: eventType, data: parsedData })
+      } catch {
+        onEvent({ type: eventType, data: { raw: currentData } })
       }
     }
 

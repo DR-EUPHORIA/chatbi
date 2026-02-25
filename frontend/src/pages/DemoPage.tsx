@@ -108,7 +108,7 @@ export default function DemoPage() {
       {/* 数据集概览 */}
       <Card
         style={{ borderRadius: 12, marginBottom: 24 }}
-        bodyStyle={{ padding: '20px 24px' }}
+        styles={{ body: { padding: '20px 24px' } }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
@@ -147,7 +147,7 @@ export default function DemoPage() {
               border: expandedTable === table.name ? '1px solid #667eea' : '1px solid #f0f0f0',
               cursor: 'pointer',
             }}
-            bodyStyle={{ padding: 0 }}
+            styles={{ body: { padding: 0 } }}
           >
             {/* 表头 */}
             <div
