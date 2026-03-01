@@ -54,3 +54,5 @@ frontend/.cache/
 
 
 backend/data/demo/ecommerce.db
+
+backend/exports
