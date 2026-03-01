@@ -6,6 +6,50 @@ import { useCallback, useMemo } from 'react'
 import { useChatStore, type ChatMessage, type StepInfo } from '../stores/chatStore'
 import { connectSSE, type SSEEvent } from '../utils/sse'
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function normalizeStep(
+  rawStep: unknown,
+  fallbackNode: string,
+  sequence: number,
+): StepInfo {
+  const step = isRecord(rawStep) ? rawStep : {}
+  const nodeValue = step.node ?? step.node_name
+  const node = typeof nodeValue === 'string' && nodeValue.trim()
+    ? nodeValue
+    : (fallbackNode || 'unknown')
+
+  const status = typeof step.status === 'string' && step.status.trim()
+    ? step.status
+    : 'pending'
+
+  const title = typeof step.title === 'string' && step.title.trim()
+    ? step.title
+    : node
+
+  const detail = typeof step.detail === 'string'
+    ? step.detail
+    : ''
+
+  const data = isRecord(step.data) ? step.data : {}
+  const rawId = step.id
+  const id = typeof rawId === 'string' && rawId.trim()
+    ? rawId
+    : `${node}_${sequence}`
+
+  return {
+    id,
+    node,
+    status,
+    title,
+    detail,
+    data,
+    sequence,
+  }
+}
+
 // 构建对话上下文，用于多轮对话
 function buildConversationContext(messages: ChatMessage[], maxTurns: number = 5): string {
   // 获取最近的 N 轮对话
@@ -133,6 +177,7 @@ export function useChat() {
 
     const collectedSteps: StepInfo[] = []
     let finalState: Record<string, unknown> = {}
+    let stepSequence = 0
 
     await connectSSE(
       content,
@@ -145,16 +190,13 @@ export function useChat() {
         if (event.type === 'step') {
           const stepData = eventData as Record<string, unknown>
           const stateSnapshot = (stepData.state_snapshot || {}) as Record<string, unknown>
+          const fallbackNode = typeof stepData.node === 'string' ? stepData.node : 'unknown'
 
           // 收集步骤信息
           if (stepData.steps && Array.isArray(stepData.steps)) {
-            for (const step of stepData.steps as StepInfo[]) {
-              const existingIndex = collectedSteps.findIndex(s => s.node === step.node)
-              if (existingIndex >= 0) {
-                collectedSteps[existingIndex] = step
-              } else {
-                collectedSteps.push(step)
-              }
+            for (const rawStep of stepData.steps) {
+              stepSequence += 1
+              collectedSteps.push(normalizeStep(rawStep, fallbackNode, stepSequence))
             }
           }
 

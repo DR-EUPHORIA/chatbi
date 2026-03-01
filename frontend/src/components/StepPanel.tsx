@@ -116,10 +116,10 @@ export default function StepPanel({ steps, isLoading, showInSidebar = false }: S
   // 自动展开正在执行的步骤
   useEffect(() => {
     if (autoExpand) {
-      const runningStep = steps.find(s => s.status === 'running')
+      const runningStep = [...steps].reverse().find(s => s.status === 'running')
       if (runningStep) {
         setExpandedKeys(prev => 
-          prev.includes(runningStep.node) ? prev : [...prev, runningStep.node]
+          prev.includes(runningStep.id) ? prev : [...prev, runningStep.id]
         )
       }
     }
@@ -167,17 +167,17 @@ export default function StepPanel({ steps, isLoading, showInSidebar = false }: S
             const nodeInfo = NODE_LABELS[step.node] || { label: step.title || step.node, category: '其他' }
             const config = STATUS_CONFIG[step.status] || STATUS_CONFIG.pending
             const categoryColor = CATEGORY_COLORS[nodeInfo.category] || '#8c8c8c'
-            const isExpanded = expandedKeys.includes(step.node)
+            const isExpanded = expandedKeys.includes(step.id)
 
             return (
-              <div key={step.node} style={{ padding: '0 16px' }}>
+              <div key={step.id} style={{ padding: '0 16px' }}>
                 {/* 步骤头部 */}
                 <div
                   onClick={() => {
                     setExpandedKeys(prev => 
-                      prev.includes(step.node) 
-                        ? prev.filter(k => k !== step.node)
-                        : [...prev, step.node]
+                      prev.includes(step.id) 
+                        ? prev.filter(k => k !== step.id)
+                        : [...prev, step.id]
                     )
                   }}
                   style={{
@@ -330,12 +330,12 @@ export default function StepPanel({ steps, isLoading, showInSidebar = false }: S
           const config = STATUS_CONFIG[step.status] || STATUS_CONFIG.pending
           const categoryColor = CATEGORY_COLORS[nodeInfo.category] || '#8c8c8c'
 
-          return (
-            <div
-              key={step.node}
-              style={{
-                display: 'flex',
-                alignItems: 'flex-start',
+            return (
+              <div
+              key={step.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
                 gap: 10,
                 padding: '8px 0',
                 position: 'relative',

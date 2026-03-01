@@ -88,6 +88,22 @@ logger = logging.getLogger(__name__)
 # ── 条件路由函数（AgentState 是 TypedDict，用 dict.get 访问） ──
 
 
+def _normalize_node_steps(node_name: str, steps: Any) -> list[dict[str, Any]]:
+    """统一步骤事件字段，便于前端按时间线展示。"""
+    if not isinstance(steps, list):
+        return []
+
+    normalized_steps: list[dict[str, Any]] = []
+    for step in steps:
+        if not isinstance(step, dict):
+            continue
+        normalized = dict(step)
+        normalized["node"] = normalized.get("node") or normalized.get("node_name") or node_name
+        normalized_steps.append(normalized)
+
+    return normalized_steps
+
+
 def after_gate(state: AgentState) -> str:
     """门控后的路由：清晰则进入路由，不清晰则结束并返回引导"""
     if state.get("is_clear", False):
@@ -525,7 +541,7 @@ async def run_agent_stream(
                         accumulated_state[key] = value
 
                 # 提取本次 node 产出的 steps
-                node_steps = node_update.get("steps", [])
+                node_steps = _normalize_node_steps(node_name, node_update.get("steps", []))
 
                 yield {
                     "type": "step",

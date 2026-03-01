@@ -5,11 +5,13 @@
 import { create } from 'zustand'
 
 export interface StepInfo {
+  id: string
   node: string
   status: string
   title: string
   detail: string
   data: Record<string, unknown>
+  sequence: number
 }
 
 export interface ChatMessage {
